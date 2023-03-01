@@ -56,31 +56,54 @@ app.get("/api/v1/products",async(req,res)=>{
 
 //UPDATE PRODUCT
 app.put("/api/v1/product/:id",async(req,res)=>{
-    let product = await Product.findById(req.params.id);
+//     let product = await Product.findById(req.params.id);
 
-    if(!product){
-        return res.status(500).json({
-            success:false,
-            message:"Product not Found"
-        })
-    }
+//     if(!product){
+//         return res.status(500).json({
+//             success:false,
+//             message:"Product not Found"
+//         })
+//     }
 
     product = await Product.findByIdAndUpdate(req.params.id,req.body,{
         new:true,
         useFindAndModify:false,
         runValidators:true
-    })
+    }).exec((err, updatedDetails) => {
+        if (err) {
+            return res.status(400).json({
+                err
+            })
+        }
 
-    res.status(200).json({
-        success:true,
-        product
-    })
+        res.status(200).json({
+            success:true,
+            product: updatedDetails
+        });
+    )
 })
 
 
 //DELETE PRODUCT
 app.delete("/api/v1/product/:id",async(req,res)=>{
-    const product = await Product.findById(req.params.id);
+    
+    await Product.findByIdAndRemove({_id: req.params.id}).exec((err, product) => {
+        if (err || !product) {
+            return res.status(400).json({
+                msg: "Product not found",
+                err
+            })
+        }
+
+        return res.status(200).json({
+            msg: "Product has been removed",
+            mesh: {
+                product
+            }
+        });
+    })
+    
+//     const product = await Product.findById(req.params.id);
     /*if(!product){
         return res.status(500).json({
             success:false,
@@ -88,12 +111,12 @@ app.delete("/api/v1/product/:id",async(req,res)=>{
         })
     }*/
     
-    await product.remove();
+//     await product.remove();
     
-    res.status(200).json({
-        success:true,
-        message:"Product is Deleted Successfully."
-    })
+//     res.status(200).json({
+//         success:true,
+//         message:"Product is Deleted Successfully."
+//     })
 })
 
 
